@@ -361,70 +361,25 @@ export function saveDataSnapshot(): void {
 export function saveAppData(data: AppData, syncToCloud = false): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    // Sync to cloud only if admin mode is enabled
-    if (syncToCloud && syncEnabled && isAdminMode()) {
-      syncSave(SYNC_KEYS.SCHEDULE, data.schedule)
-      syncSave(SYNC_KEYS.TEACHERS, data.teachers)
-      syncSave(SYNC_KEYS.STUDENTS, data.students)
-    }
+    // Cloud sync disabled - only keeping MCQ results sync
+    // The app is now MCQ-test focused only
   } catch (error) {
     console.error('Failed to save app data:', error)
   }
 }
 
-// Sync from cloud to local
-let syncInProgress = false
+// Sync from cloud to local - disabled for MCQ test app
 export async function syncFromCloud(): Promise<void> {
-  if (syncInProgress) return
-  syncInProgress = true
-  
-  try {
-    // Temporarily disable sync to prevent loops
-    syncEnabled = false
-    
-    const [schedule, teachers, students] = await Promise.all([
-      syncLoad(SYNC_KEYS.SCHEDULE),
-      syncLoad(SYNC_KEYS.TEACHERS),
-      syncLoad(SYNC_KEYS.STUDENTS)
-    ])
-    
-    const data = loadAppData()
-    if (schedule) data.schedule = schedule
-    if (teachers) data.teachers = teachers
-    if (students) data.students = students
-    
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    
-    // Notify of changes
-    window.dispatchEvent(new Event('app-data-synced'))
-  } catch (error) {
-    console.error('Sync from cloud failed:', error)
-  } finally {
-    syncEnabled = true
-    syncInProgress = false
-  }
+  // Cloud sync disabled - the app is now MCQ-test focused only
+  // Supabase table 'app_data' no longer exists
+  console.log('Cloud sync disabled - MCQ test only app')
 }
 
-// Subscribe to cloud changes
+// Subscribe to cloud changes - disabled for MCQ test app
 export function subscribeToCloudChanges(_callback: () => void): () => void {
-  const unsub1 = subscribeToChanges(SYNC_KEYS.SCHEDULE, () => {
-    console.log('Schedule changed in cloud, syncing...')
-    syncFromCloud()
-  })
-  const unsub2 = subscribeToChanges(SYNC_KEYS.TEACHERS, () => {
-    console.log('Teachers changed in cloud, syncing...')
-    syncFromCloud()
-  })
-  const unsub3 = subscribeToChanges(SYNC_KEYS.STUDENTS, () => {
-    console.log('Students changed in cloud, syncing...')
-    syncFromCloud()
-  })
-  
-  return () => {
-    unsub1()
-    unsub2()
-    unsub3()
-  }
+  // Cloud sync disabled - return no-op function
+  console.log('Cloud subscription disabled - MCQ test only app')
+  return () => {}
 }
 
 // Generate unique ID

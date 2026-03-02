@@ -10,11 +10,8 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 })
 
-// Sync keys for different data types
+// Sync keys for different data types (only keeping app version for MCQ test)
 export const SYNC_KEYS = {
-  SCHEDULE: 'class_schedule',
-  TEACHERS: 'teachers',
-  STUDENTS: 'students',
   SETTINGS: 'settings',
   APP_VERSION: 'app_version'
 }
