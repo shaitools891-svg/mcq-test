@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# GitHub Pages
+gh-pages/
+
+# JDK files (large)
+jdk-17.0.2/
+jdk-21.0.2/
+
+# Test files
+*.xls
+*.xlsx
