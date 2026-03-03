@@ -18,9 +18,8 @@ export default defineConfig({
     outDir: 'docs',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-ui': ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'sonner']
-        }
+        // Single bundle for simpler deployment
+        manualChunks: undefined
       }
     }
   }
