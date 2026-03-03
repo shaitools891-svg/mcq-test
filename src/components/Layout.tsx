@@ -23,6 +23,7 @@ import { Capacitor } from '@capacitor/core'
 import { Theme, Tool, ToolCategory, ViewMode } from '../types'
 import { PaperKnifeLogo } from './Logo'
 import { ActivityEntry, getRecentActivity, clearActivity } from '../utils/recentActivity'
+import { hapticImpact, hapticNavigation, hapticSelection } from '../utils/haptics'
 
 interface LayoutProps {
   children: React.ReactNode
