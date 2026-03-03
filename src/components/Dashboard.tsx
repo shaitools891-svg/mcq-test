@@ -12,7 +12,7 @@ import {
   Activity,
   Trash2
 } from 'lucide-react'
-import { getAllProfilePictures, loadProfilePictureFromCloud } from '../utils/supabaseClient'
+import { getAllProfilePictures, loadProfilePictureFromCloud, loadMCQResults, loadAllMCQResults, hashProfileId } from '../utils/supabaseClient'
 
 // Base path for deployed assets (Vite base is /mcq-test/)
 const ASSET_BASE = '/mcq-test/';
@@ -85,12 +85,45 @@ const StudentDashboard = ({ profile: _profile }: { profile: { name: string; role
   const [results, setResults] = useState<TestResult[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkedQuestion[]>([]);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const profileId = localStorage.getItem('selectedProfile');
     if (profileId) {
-      setResults(getTestResults(profileId));
+      // First load from localStorage (instant)
+      const localResults = getTestResults(profileId);
+      setResults(localResults);
       setBookmarks(getBookmarks(profileId));
+      
+      // Then load from Supabase and merge
+      loadMCQResults(profileId).then(cloudResults => {
+        if (cloudResults.length > 0) {
+          // Merge cloud results with local, avoiding duplicates
+          const localIds = new Set(localResults.map(r => `${r.date}-${r.score}-${r.percentage}`));
+          const newFromCloud = cloudResults.filter(r => 
+            !localIds.has(`${r.timestamp}-${r.score}-${r.percentage}`)
+          );
+          
+          if (newFromCloud.length > 0) {
+            // Save new cloud results to localStorage
+            const mergedResults = [...localResults, ...newFromCloud.map(r => ({
+              date: r.timestamp,
+              score: r.score,
+              total: r.total,
+              percentage: r.percentage,
+              timeTaken: 0,
+              answers: []
+            }))];
+            
+            const storageKey = `mcq_results_${profileId}`;
+            localStorage.setItem(storageKey, JSON.stringify(mergedResults));
+            setResults(mergedResults);
+          }
+        }
+        setIsLoading(false);
+      }).catch(() => {
+        setIsLoading(false);
+      });
     }
   }, []);
 
@@ -317,9 +350,56 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
   const navigate = useNavigate();
   const [studentsResults, setStudentsResults] = useState<Record<string, TestResult[]>>({});
   const [activeTab, setActiveTab] = useState<'overview' | 'activity'>('overview');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // First load from localStorage
     setStudentsResults(getAllStudentsResults());
+    
+    // Then load all results from Supabase
+    loadAllMCQResults().then(allResults => {
+      if (allResults.length > 0) {
+        // Group results by profile ID
+        const cloudByProfile: Record<string, TestResult[]> = {};
+        allResults.forEach(r => {
+          if (!cloudByProfile[r.anonymous_id]) {
+            cloudByProfile[r.anonymous_id] = [];
+          }
+          cloudByProfile[r.anonymous_id].push({
+            date: r.timestamp,
+            score: r.score,
+            total: r.total,
+            percentage: r.percentage,
+            timeTaken: 0,
+            answers: []
+          });
+        });
+        
+        // Merge with local results
+        const merged: Record<string, TestResult[]> = {};
+        const localResults = getAllStudentsResults();
+        
+        // Get all profile IDs from both sources
+        const allProfileIds = new Set([
+          ...Object.keys(localResults),
+          ...Object.keys(cloudByProfile)
+        ]);
+        
+        allProfileIds.forEach(profileId => {
+          const local = localResults[profileId] || [];
+          const cloud = cloudByProfile[profileId] || [];
+          
+          // Simple merge - combine both, removing exact duplicates
+          const mergedResults = [...local, ...cloud];
+          merged[profileId] = mergedResults;
+        });
+        
+        setStudentsResults(merged);
+      }
+      setIsLoading(false);
+    }).catch(() => {
+      setIsLoading(false);
+    });
   }, []);
 
   const handleLogout = () => {
