@@ -6,11 +6,12 @@ export default defineConfig({
   plugins: [
     react()
   ],
-  base: '/mcq-test/',
+  base: '/',
   server: {
     host: true
   },
   build: {
+    outDir: 'docs',
     target: 'esnext',
     minify: 'esbuild', // Faster and more stable in resource-constrained environments
     rollupOptions: {
