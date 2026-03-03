@@ -23,7 +23,6 @@ import { Capacitor } from '@capacitor/core'
 import { Theme, Tool, ToolCategory, ViewMode } from '../types'
 import { PaperKnifeLogo } from './Logo'
 import { ActivityEntry, getRecentActivity, clearActivity } from '../utils/recentActivity'
-import { hapticImpact, hapticNavigation, hapticSelection } from '../utils/haptics'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -137,7 +136,7 @@ export default function Layout({ children, theme, toggleTheme, tools, onFileDrop
         <header className="flex items-center justify-between px-4 md:px-8 h-16 md:h-20 border-b border-gray-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md sticky top-0 z-[100]">
           <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
             {!isHome && (
-              <button onClick={() => { hapticNavigation(); navigate('/'); }} className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-900 rounded-xl transition-colors text-gray-500 hover:text-rose-500 shrink-0"><ArrowLeftIcon size={20} /></button>
+              <button onClick={() => { navigate('/'); }} className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-900 rounded-xl transition-colors text-gray-500 hover:text-rose-500 shrink-0"><ArrowLeftIcon size={20} /></button>
             )}
             <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
               <PaperKnifeLogo size={Capacitor.isNativePlatform() ? 24 : 28} iconColor="#F43F5E" />
@@ -147,7 +146,7 @@ export default function Layout({ children, theme, toggleTheme, tools, onFileDrop
             </Link>
             <div className="h-6 w-[1px] bg-gray-200 dark:bg-zinc-800 mx-1 md:mx-2 shrink-0" />
             <div className="relative min-w-0" ref={dropdownRef}>
-              <button onClick={() => { hapticNavigation(); setIsDropdownOpen(!isDropdownOpen); }} className={`flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-xl transition-all font-black text-[10px] md:text-sm uppercase tracking-widest min-w-0 ${isDropdownOpen ? 'bg-rose-500 text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-900'}`}>
+              <button onClick={() => { setIsDropdownOpen(!isDropdownOpen); }} className={`flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-xl transition-all font-black text-[10px] md:text-sm uppercase tracking-widest min-w-0 ${isDropdownOpen ? 'bg-rose-500 text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-900'}`}>
                 <span className="truncate">{isHome ? 'All Tools' : activeTool?.title || 'Tool'}</span>
                 <ChevronDownIcon size={14} className={`transition-transform duration-300 shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -162,7 +161,7 @@ export default function Layout({ children, theme, toggleTheme, tools, onFileDrop
                           {categoryTools.map((tool, i) => {
                             const Icon = tool.icon; const isActive = activeTool?.title === tool.title && !isHome
                             return (
-                              <button key={i} onClick={() => { hapticNavigation(); navigate(tool.path || '/'); setIsDropdownOpen(false); }} className={`flex items-center gap-4 p-3 rounded-2xl transition-all text-left group ${isActive ? `${colors.bg} ${colors.text}` : `hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400`}`}>
+                              <button key={i} onClick={() => { navigate(tool.path || '/'); setIsDropdownOpen(false); }} className={`flex items-center gap-4 p-3 rounded-2xl transition-all text-left group ${isActive ? `${colors.bg} ${colors.text}` : `hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400`}`}>
                                 <div className={`p-2 rounded-lg transition-colors ${isActive ? 'bg-white dark:bg-zinc-800' : `${colors.iconBg} ${colors.text} opacity-70 group-hover:opacity-100`}`}><Icon size={18} /></div>
                                 <div className="flex-1 min-w-0"><p className="text-xs font-black uppercase tracking-tight">{tool.title}</p><p className="text-[10px] opacity-60 truncate">{tool.desc}</p></div>
                               </button>
@@ -188,7 +187,7 @@ export default function Layout({ children, theme, toggleTheme, tools, onFileDrop
               </a>
             )}
 
-            <button onClick={() => { hapticSelection(); toggleTheme(); }} className="p-2 text-gray-400 hover:text-rose-500 transition-colors">
+            <button onClick={() => { toggleTheme(); }} className="p-2 text-gray-400 hover:text-rose-500 transition-colors">
               {theme === 'light' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
             </button>
             <button onClick={() => setShowHistory(true)} className={`p-2 transition-colors relative ${showHistory ? 'text-rose-500' : 'text-gray-400 hover:text-rose-500'}`}>
@@ -267,7 +266,7 @@ export default function Layout({ children, theme, toggleTheme, tools, onFileDrop
       {shouldShowNav && (
         <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-gray-100 dark:border-zinc-800 flex items-end justify-between px-6 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-3 z-[100] shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
           <button 
-            onClick={() => { hapticNavigation(); navigate('/'); }}
+            onClick={() => { navigate('/'); }}
             className={`flex flex-col items-center gap-1.5 flex-1 transition-all ${location.pathname === '/' ? 'text-rose-500' : 'text-gray-400 dark:text-zinc-600'}`}
           >
             <HomeIcon size={24} strokeWidth={location.pathname === '/' ? 2.5 : 2} />
@@ -275,7 +274,7 @@ export default function Layout({ children, theme, toggleTheme, tools, onFileDrop
           </button>
 
           <button
-            onClick={() => { hapticNavigation(); navigate('/dashboard'); }}
+            onClick={() => { navigate('/dashboard'); }}
             className={`flex flex-col items-center gap-1.5 flex-1 transition-all ${location.pathname === '/dashboard' ? 'text-rose-500' : 'text-gray-400 dark:text-zinc-600'}`}
           >
             <User size={24} strokeWidth={location.pathname === '/dashboard' ? 2.5 : 2} />
@@ -283,7 +282,7 @@ export default function Layout({ children, theme, toggleTheme, tools, onFileDrop
           </button>
 
           <button
-            onClick={() => { hapticNavigation(); navigate('/mcq-test'); }}
+            onClick={() => { navigate('/mcq-test'); }}
             className={`flex flex-col items-center gap-1.5 flex-1 transition-all ${location.pathname === '/mcq-test' ? 'text-rose-500' : 'text-gray-400 dark:text-zinc-600'}`}
           >
             <HelpCircle size={24} strokeWidth={location.pathname === '/mcq-test' ? 2.5 : 2} />

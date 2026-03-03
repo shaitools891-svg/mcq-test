@@ -14,10 +14,6 @@ import Layout from './components/Layout'
 import { ViewModeProvider } from './utils/viewModeContext'
 import { Capacitor } from '@capacitor/core'
 
-// Core imports for MCQ Test App
-import Thanks from './components/Thanks'
-import PrivacyPolicy from './components/PrivacyPolicy'
-
 import ProfileSelection from './components/ProfileSelection'
 import Dashboard, { DashboardWrapper } from './components/Dashboard'
 import MCQTest from './components/MCQTest'
@@ -103,8 +99,6 @@ function App() {
                 <Route path="/" element={<ProfileSelection />} />
                 <Route path="/mcq-test" element={<MCQTest />} />
                 <Route path="/dashboard" element={<DashboardWrapper />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/thanks" element={<Thanks />} />
               </Routes>
             </Suspense>
 
