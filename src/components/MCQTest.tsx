@@ -8,11 +8,24 @@ import {
   Award,
   Clock,
   BookOpen,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
 import { useTimer } from '../hooks/useTimer';
+
+// Get current profile info
+const getProfileInfo = (): { name: string } | null => {
+  const profileId = localStorage.getItem('selectedProfile');
+  const profiles: Record<string, { name: string }> = {
+    aliza: { name: 'Aliza' },
+    eshita: { name: 'Eshita' },
+    shapla: { name: 'Shapla' },
+    shakib: { name: 'Shakib' }
+  };
+  return profileId ? (profiles[profileId] || null) : null;
+};
 
 interface Question {
   id: number;
@@ -386,6 +399,19 @@ export default function MCQTest() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(new Array(questions.length).fill(-1));
   const [showResults, setShowResults] = useState(false);
+  
+  // Store final time when test ends
+  const [finalTimeLeft, setFinalTimeLeft] = useState(0);
+  const [finalFormattedTime, setFinalFormattedTime] = useState('00:00');
+  
+  // Subject/Board selection state
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [selectedPaper, setSelectedPaper] = useState<string | null>(null);
+  const [selectedBoard, setSelectedBoard] = useState<string | null>(null);
+  const [testStarted, setTestStarted] = useState(false);
+  
+  // Profile menu state
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Use the timer hook
   const { timeLeft, isRunning, formattedTime, reset: resetTimer, pause: pauseTimer, resume: resumeTimer } = useTimer({ 
@@ -418,7 +444,15 @@ export default function MCQTest() {
   };
 
   const handleSubmit = () => {
-    pauseTimer();
+    // Store the final time values before pausing
+    setFinalTimeLeft(timeLeft);
+    setFinalFormattedTime(formattedTime);
+    
+    try {
+      if (pauseTimer) pauseTimer();
+    } catch (e) {
+      console.log('Timer pause error:', e);
+    }
     setShowResults(true);
   };
 
@@ -426,7 +460,18 @@ export default function MCQTest() {
     setCurrentQuestion(0);
     setSelectedAnswers(new Array(questions.length).fill(-1));
     setShowResults(false);
-    resetTimer();
+    setFinalTimeLeft(0);
+    setFinalFormattedTime('00:00');
+    try {
+      if (resetTimer) resetTimer();
+    } catch (e) {
+      console.log('Timer reset error:', e);
+    }
+    // Also reset selection state to go back to selection screen
+    setTestStarted(false);
+    setSelectedSubject(null);
+    setSelectedPaper(null);
+    setSelectedBoard(null);
   };
 
   const calculateScore = () => {
@@ -486,7 +531,7 @@ export default function MCQTest() {
               <div className="flex items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Time: {formattedTime}</span>
+                  <span>Time: {finalFormattedTime || formattedTime}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -607,10 +652,208 @@ export default function MCQTest() {
   const currentQ = questions[currentQuestion];
   const progress = ((currentQuestion + 1) / questions.length) * 100;
   const answeredCount = selectedAnswers.filter(a => a !== -1).length;
+  const profile = getProfileInfo();
+
+  // Subject selection screen
+  if (!testStarted) {
+    const subjects = [
+      { id: 'biology', name: 'Biology', nameBn: 'জীববিজ্ঞান', icon: '🧬' },
+      { id: 'chemistry', name: 'Chemistry', nameBn: 'রসায়ন', icon: '⚗️', disabled: true },
+      { id: 'physics', name: 'Physics', nameBn: 'পদার্থবিদ্যা', icon: '⚛️', disabled: true },
+      { id: 'math', name: 'Math', nameBn: 'গণিত', icon: '📐', disabled: true },
+    ];
+
+    const papers = [
+      { id: '1st', name: 'Paper 1st', nameBn: '১ম পত্র' },
+      { id: '2nd', name: 'Paper 2nd', nameBn: '২য় পত্র' },
+    ];
+
+    const boards = [
+      { id: 'comilla', name: 'Comilla', nameBn: 'কুমিল্লা বোর্ড', year: '2023' },
+      { id: 'dhaka', name: 'Dhaka', nameBn: 'ঢাকা বোর্ড', year: '2023', disabled: true },
+      { id: 'rajshahi', name: 'Rajshahi', nameBn: 'রাজশাহী বোর্ড', year: '2023', disabled: true },
+      { id: 'chittagong', name: 'Chittagong', nameBn: 'চট্টগ্রাম বোর্ড', year: '2023', disabled: true },
+      { id: 'barisal', name: 'Barisal', nameBn: 'বরিশাল বোর্ড', year: '2023', disabled: true },
+      { id: 'sylhet', name: 'Sylhet', nameBn: 'সিলেট বোর্ড', year: '2023', disabled: true },
+      { id: 'dinajpur', name: 'Dinajpur', nameBn: 'দিনাজপুর বোর্ড', year: '2023', disabled: true },
+      { id: 'mymensingh', name: 'Mymensingh', nameBn: 'ময়মনসিংহ বোর্ড', year: '2023', disabled: true },
+    ];
+
+    const isSubjectSelected = selectedSubject !== null;
+    const isPaperSelected = selectedPaper !== null;
+    const isBoardSelected = selectedBoard !== null;
+    const canStartTest = isSubjectSelected && isPaperSelected && isBoardSelected;
+
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Profile Avatar in Top Right */}
+          {profile && (
+            <div className="fixed top-4 right-4 z-50">
+              <div 
+                className="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center shadow-lg cursor-pointer"
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                title={profile.name}
+              >
+                <span className="text-white font-bold text-sm">{profile.name[0]}</span>
+              </div>
+              
+              {/* Profile Dropdown Menu */}
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 py-2">
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-zinc-700">
+                    <p className="font-medium text-gray-900 dark:text-white">{profile.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">Student</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('selectedProfile');
+                      window.location.href = '/';
+                    }}
+                    className="w-full px-4 py-2 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Selection Screen */}
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 p-6 mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+              Select Exam Type
+            </h1>
+
+            {/* Subject Selection */}
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Select Subject</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {subjects.map((subject) => (
+                  <button
+                    key={subject.id}
+                    onClick={() => !subject.disabled && setSelectedSubject(subject.id)}
+                    disabled={subject.disabled}
+                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                      subject.disabled
+                        ? 'border-gray-200 dark:border-zinc-700 opacity-50 cursor-not-allowed'
+                        : selectedSubject === subject.id
+                        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20'
+                        : 'border-gray-200 dark:border-zinc-700 hover:border-rose-300 dark:hover:border-rose-700'
+                    }`}
+                  >
+                    <div className="text-3xl mb-2">{subject.icon}</div>
+                    <div className="font-medium text-gray-900 dark:text-white">{subject.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{subject.nameBn}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Paper Selection */}
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Select Paper</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {papers.map((paper) => (
+                  <button
+                    key={paper.id}
+                    onClick={() => setSelectedPaper(paper.id)}
+                    disabled={!selectedSubject}
+                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                      !selectedSubject
+                        ? 'border-gray-200 dark:border-zinc-700 opacity-50 cursor-not-allowed'
+                        : selectedPaper === paper.id
+                        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20'
+                        : 'border-gray-200 dark:border-zinc-700 hover:border-rose-300 dark:hover:border-rose-700'
+                    }`}
+                  >
+                    <div className="font-medium text-gray-900 dark:text-white">{paper.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{paper.nameBn}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Board Selection */}
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Select Board & Year</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {boards.map((board) => (
+                  <button
+                    key={board.id}
+                    onClick={() => !board.disabled && setSelectedBoard(board.id)}
+                    disabled={!selectedPaper || board.disabled}
+                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                      !selectedPaper || board.disabled
+                        ? 'border-gray-200 dark:border-zinc-700 opacity-50 cursor-not-allowed'
+                        : selectedBoard === board.id
+                        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20'
+                        : 'border-gray-200 dark:border-zinc-700 hover:border-rose-300 dark:hover:border-rose-700'
+                    }`}
+                  >
+                    <div className="font-medium text-gray-900 dark:text-white">{board.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{board.nameBn}</div>
+                    <div className="text-xs text-amber-500 font-medium">{board.year}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Start Button */}
+            <button
+              onClick={() => setTestStarted(true)}
+              disabled={!canStartTest}
+              className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
+                canStartTest
+                  ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-lg'
+                  : 'bg-gray-200 dark:bg-zinc-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Start Test
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 py-8 px-4">
       <div className="max-w-4xl mx-auto">
+        {/* Profile Avatar in Top Right */}
+        {profile && (
+          <div className="fixed top-4 right-4 z-50">
+            <div 
+              className="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center shadow-lg cursor-pointer"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              title={profile.name}
+            >
+              <span className="text-white font-bold text-sm">{profile.name[0]}</span>
+            </div>
+            
+            {/* Profile Dropdown Menu */}
+            {showProfileMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 py-2">
+                <div className="px-4 py-2 border-b border-gray-200 dark:border-zinc-700">
+                  <p className="font-medium text-gray-900 dark:text-white">{profile.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">Student</p>
+                </div>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('selectedProfile');
+                    window.location.href = '/';
+                  }}
+                  className="w-full px-4 py-2 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Header */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

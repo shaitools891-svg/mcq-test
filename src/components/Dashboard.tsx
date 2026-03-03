@@ -71,6 +71,7 @@ const StudentDashboard = ({ profile: _profile }: { profile: { name: string; role
   const [activeTab, setActiveTab] = useState<'summary' | 'activity' | 'bookmarks'>('summary');
   const [results, setResults] = useState<TestResult[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkedQuestion[]>([]);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
     const profileId = localStorage.getItem('selectedProfile');
@@ -103,7 +104,38 @@ const StudentDashboard = ({ profile: _profile }: { profile: { name: string; role
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
+
+      {/* Profile Avatar in Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        <div 
+          className="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center shadow-lg cursor-pointer"
+          onClick={() => setShowProfileMenu(!showProfileMenu)}
+          title={_profile.name}
+        >
+          <span className="text-white font-bold text-sm">{_profile.name[0]}</span>
+        </div>
+        
+        {/* Profile Dropdown Menu */}
+        {showProfileMenu && (
+          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 py-2">
+            <div className="px-4 py-2 border-b border-gray-200 dark:border-zinc-700">
+              <p className="font-medium text-gray-900 dark:text-white">{_profile.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{_profile.role}</p>
+            </div>
+            <button
+              onClick={() => {
+                localStorage.removeItem('selectedProfile');
+                navigate('/');
+              }}
+              className="w-full px-4 py-2 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
@@ -325,7 +357,7 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
   const barHeight = (percentage: number) => `${(percentage / maxPercentage) * 100}%`;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
       {/* Header */}
       <div className="bg-gradient-to-r from-rose-500 to-amber-500 text-white p-6">
         <div className="flex items-center justify-between">
