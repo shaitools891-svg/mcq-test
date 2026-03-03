@@ -11,31 +11,31 @@ interface Profile {
   avatar: string
 }
 
-// Profile pictures from assets
+// No profile pictures - use initials instead
 const profiles: Profile[] = [
   {
     id: 'aliza',
     name: 'Aliza',
     role: 'student',
-    avatar: './assets/aliza.jpg'
+    avatar: ''
   },
   {
     id: 'eshita',
     name: 'Eshita',
     role: 'student',
-    avatar: './assets/eshita.jpg'
+    avatar: ''
   },
   {
     id: 'shapla',
     name: 'Shapla',
     role: 'student',
-    avatar: './assets/eshita.jpg'
+    avatar: ''
   },
   {
     id: 'shakib',
     name: 'Shakib',
     role: 'admin',
-    avatar: './assets/shakib.jpg'
+    avatar: ''
   }
 ]
 
@@ -60,7 +60,7 @@ export default function ProfileSelection() {
       <div className="mb-8">
         <div className="w-24 h-24 rounded-full bg-white dark:bg-zinc-800 shadow-xl shadow-rose-500/20 flex items-center justify-center overflow-hidden border-4 border-white dark:border-zinc-700">
           <img 
-            src="./assets/matherror.jpg" 
+            src="" 
             alt="Logo" 
             className="w-full h-full object-cover"
             onError={(e) => {

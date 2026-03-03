@@ -6,22 +6,19 @@ export default defineConfig({
   plugins: [
     react()
   ],
-  base: '/',
+  base: './',
   server: {
-    host: true
+    host: true,
+    port: 5173
   },
   build: {
-    outDir: 'docs',
     target: 'esnext',
-    minify: 'esbuild', // Faster and more stable in resource-constrained environments
+    minify: 'esbuild',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
-          'pdf-lib-core': ['pdf-lib'],
-          'pdfjs-viewer': ['pdfjs-dist'],
-          'tesseract-core': ['tesseract.js'],
-          'vendor-ui': ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'sonner'],
-          'vendor-utils': ['jszip', '@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities']
+          'vendor-ui': ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'sonner']
         }
       }
     }
