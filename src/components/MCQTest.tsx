@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
+import { useTimer } from '../hooks/useTimer';
 
 interface Question {
   id: number;
@@ -370,28 +371,33 @@ const renderWithLatex = (text: string) => {
   });
 };
 
+const TOTAL_TIME_25_QUESTIONS = 15 * 60; // 15 minutes in seconds
+const TOTAL_TIME_30_QUESTIONS = 20 * 60; // 20 minutes in seconds
+
+// Determine time limit based on number of questions
+const getTimeLimit = (questionCount: number) => {
+  if (questionCount <= 25) {
+    return TOTAL_TIME_25_QUESTIONS;
+  }
+  return TOTAL_TIME_30_QUESTIONS;
+};
+
 export default function MCQTest() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(new Array(questions.length).fill(-1));
   const [showResults, setShowResults] = useState(false);
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(true);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isTimerRunning && !showResults) {
-      interval = setInterval(() => {
-        setTimeElapsed(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning, showResults]);
+  // Use the timer hook
+  const { timeLeft, isRunning, formattedTime, reset: resetTimer, pause: pauseTimer, resume: resumeTimer } = useTimer({ 
+    questionCount: questions.length,
+    onTimeUp: () => setShowResults(true)
+  });
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Calculate the time limit for display
+  const timeLimit = getTimeLimit(questions.length);
+
+  // Calculate elapsed time for display in results (for consistency)
+  const timeElapsed = timeLimit - timeLeft;
 
   const handleSelectAnswer = (optionIndex: number) => {
     const newAnswers = [...selectedAnswers];
@@ -412,7 +418,7 @@ export default function MCQTest() {
   };
 
   const handleSubmit = () => {
-    setIsTimerRunning(false);
+    pauseTimer();
     setShowResults(true);
   };
 
@@ -420,8 +426,7 @@ export default function MCQTest() {
     setCurrentQuestion(0);
     setSelectedAnswers(new Array(questions.length).fill(-1));
     setShowResults(false);
-    setTimeElapsed(0);
-    setIsTimerRunning(true);
+    resetTimer();
   };
 
   const calculateScore = () => {
@@ -481,7 +486,7 @@ export default function MCQTest() {
               <div className="flex items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Time: {formatTime(timeElapsed)}</span>
+                  <span>Time: {formattedTime}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -619,7 +624,7 @@ export default function MCQTest() {
               <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                 <Clock className="w-4 h-4 text-amber-500" />
                 <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
-                  {formatTime(timeElapsed)}
+                  {formattedTime}
                 </span>
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
