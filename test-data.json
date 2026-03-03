@@ -1,0 +1,32 @@
+{
+  "schedule": [
+    {
+      "id": "1",
+      "className": "Play 1",
+      "subject": "Mathematics",
+      "startTime": "09:00",
+      "endTime": "10:00",
+      "day": "Monday",
+      "teacherId": null
+    },
+    {
+      "id": "2",
+      "className": "Play 1",
+      "subject": "Science",
+      "startTime": "10:00",
+      "endTime": "11:00",
+      "day": "Everyday",
+      "teacherId": null
+    },
+    {
+      "id": "3",
+      "className": "Play 1",
+      "subject": "English",
+      "startTime": "11:00",
+      "endTime": "12:00",
+      "day": "Monday",
+      "teacherId": null
+    }
+  ],
+  "teachers": []
+}

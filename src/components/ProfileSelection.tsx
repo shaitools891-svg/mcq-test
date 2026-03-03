@@ -11,6 +11,7 @@ interface Profile {
   avatar: string
 }
 
+// No profile pictures - use initials instead
 const profiles: Profile[] = [
   {
     id: 'aliza',
@@ -28,7 +29,7 @@ const profiles: Profile[] = [
     id: 'shapla',
     name: 'Shapla',
     role: 'student',
-    avatar: '' // Placeholder - file not found
+    avatar: ''
   },
   {
     id: 'shakib',

@@ -1,6 +1,11 @@
 /**
- * MCQ Test App
- * Privacy-focused MCQ testing application
+ * PaperKnife - The Swiss Army Knife for PDFs
+ * Copyright (C) 2026 potatameister
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  */
 
 import { useState, useEffect, Suspense } from 'react'
@@ -12,12 +17,26 @@ import { Toaster } from 'sonner'
 import { Theme, ViewMode, Tool } from './types'
 import Layout from './components/Layout'
 import { ViewModeProvider } from './utils/viewModeContext'
-import { Capacitor } from '@capacitor/core'
-
-import ProfileSelection from './components/ProfileSelection'
-import Dashboard, { DashboardWrapper } from './components/Dashboard'
-import MCQTest from './components/MCQTest'
+import { clearActivity, updateLastSeen, getLastSeen } from './utils/recentActivity'
+import { syncFromCloud, subscribeToCloudChanges, saveDataSnapshot } from './utils/routineStorage'
+import { importBackupFromUri } from './utils/backupUtils'
 import ScrollToTop from './components/ScrollToTop'
+import { checkForRunningClassOnStartup, showRunningClassNotification, temporarilyDisableNotificationSound } from './utils/notificationUtils'
+
+// Critical Views - No lazy loading to prevent dynamic import errors on Android
+import AndroidToolsView from './components/AndroidToolsView'
+import AndroidHistoryView from './components/AndroidHistoryView'
+import Thanks from './components/Thanks'
+import PrivacyPolicy from './components/PrivacyPolicy'
+import SettingsView from './components/Settings'
+
+import RoutineScrapper from './components/routine/RoutineScrapper'
+import ClassRoutine from './components/routine/ClassRoutine'
+import StudentDirectory from './components/routine/StudentDirectory'
+import Dashboard from './components/Dashboard'
+import ProfileSelection from './components/ProfileSelection'
+import TeacherDatabase from './components/routine/TeacherDatabase'
+import MCQTest from './components/MCQTest'
 
 const tools: Tool[] = []
 
@@ -38,6 +57,108 @@ function App() {
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light')
   }
+
+  // Improved Auto-Wipe Logic
+  useEffect(() => {
+    const isAutoWipeEnabled = localStorage.getItem('autoWipe') === 'true'
+    const timerMinutes = parseInt(localStorage.getItem('autoWipeTimer') || '15')
+    const lastSeen = getLastSeen()
+    const now = Date.now()
+
+    if (isAutoWipeEnabled) {
+      const elapsedMinutes = (now - lastSeen) / (1000 * 60)
+      if (timerMinutes === 0 || (lastSeen > 0 && elapsedMinutes >= timerMinutes)) {
+        clearActivity().then(() => {
+          console.log(`Auto-Wipe triggered (${elapsedMinutes.toFixed(1)}m inactivity).`)
+        })
+      }
+    }
+
+    updateLastSeen()
+    const interval = setInterval(updateLastSeen, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Handle incoming files (PDF/JSON shared to the app)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+
+    const handleFileIntent = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ uri: string; mimeType: string }>
+      const { uri, mimeType } = customEvent.detail
+      
+      console.log('Received file intent:', mimeType, uri)
+      
+      if (mimeType === 'application/json') {
+        const result = await importBackupFromUri(uri)
+        if (result.success) {
+          // Show success message - the user will need to refresh
+          alert('Backup imported successfully! Please refresh the app.')
+          window.location.reload()
+        } else {
+          alert('Import failed: ' + result.error)
+        }
+      }
+    }
+
+    window.addEventListener('fileIntent', handleFileIntent)
+    
+    return () => {
+      window.removeEventListener('fileIntent', handleFileIntent)
+    }
+  }, [])
+
+  // Cloud Sync - Initialize on app start
+  useEffect(() => {
+    // Try to sync from cloud on startup
+    syncFromCloud().then(() => {
+      console.log('Initial cloud sync completed')
+      // Save snapshot after sync for change tracking
+      saveDataSnapshot()
+    })
+    
+    // Subscribe to real-time cloud changes
+    const unsubscribe = subscribeToCloudChanges(() => {
+      console.log('Cloud data changed, re-syncing...')
+    })
+    
+    return () => {
+      unsubscribe()
+    }
+  }, [])
+
+  // Check for running class on app startup and poll for changes
+  useEffect(() => {
+    // Initial check
+    checkForRunningClassOnStartup().then((runningClass) => {
+      if (runningClass) {
+        console.log(`Found running class: ${runningClass.schedule.className} - ${runningClass.schedule.subject}`)
+      }
+    })
+    
+    // Poll for running class changes every 15 seconds to detect class changes more quickly
+    const pollingInterval = setInterval(() => {
+      showRunningClassNotification()
+    }, 15000) // 15 seconds
+    
+    // Volume button event listener to stop notification sound
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if volume button control is enabled
+      const volumeControlEnabled = JSON.parse(localStorage.getItem('volumeButtonControl') || 'true');
+      
+      if (volumeControlEnabled && (event.code === 'VolumeUp' || event.code === 'VolumeDown' || event.code === 'AudioVolumeUp' || event.code === 'AudioVolumeDown')) {
+        console.log('[Notifications] Volume button pressed, stopping notification sound');
+        temporarilyDisableNotificationSound();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      clearInterval(pollingInterval);
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [])
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -75,7 +196,7 @@ function App() {
   )
 
   const handleGlobalDrop = (_files: FileList) => {
-    // File drop handling - not needed for MCQ test only app
+    // File drop handling - PDF tools removed
   }
 
   return (
@@ -96,9 +217,16 @@ function App() {
             
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
-                <Route path="/" element={<ProfileSelection />} />
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/students" element={<StudentDirectory />} />
+                <Route path="/teachers" element={<TeacherDatabase />} />
+                <Route path="/android-tools" element={<AndroidToolsView tools={activeTools} />} />
+                <Route path="/android-history" element={<AndroidHistoryView />} />
+                <Route path="/routine-scrapper" element={<RoutineScrapper />} />
                 <Route path="/mcq-test" element={<MCQTest />} />
-                <Route path="/dashboard" element={<DashboardWrapper />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/settings" element={<SettingsView theme={theme} setTheme={setTheme} />} />
+                <Route path="/thanks" element={<Thanks />} />
               </Routes>
             </Suspense>
 

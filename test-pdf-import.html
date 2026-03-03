@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Import Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .file-input {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .student-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .student-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .student-details {
+            font-size: 14px;
+            color: #666;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Import Test</h1>
+        <div class="file-input">
+            <input type="file" id="pdfFile" accept=".pdf">
+        </div>
+        <div>
+            <button id="importBtn">Import PDF</button>
+            <button id="clearBtn">Clear Results</button>
+        </div>
+        <div id="status" class="status"></div>
+        <div id="results" class="results"></div>
+    </div>
+
+    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script>
+        // Configure pdfjs-dist
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.mjs`;
+
+        // DOM elements
+        const pdfFileInput = document.getElementById('pdfFile');
+        const importBtn = document.getElementById('importBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+
+        // Configure status display
+        function setStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function parseStudentFromSection(text, indexNumber, className) {
+            // Extract student name (after Index: XXX and before F.N.:)
+            const nameMatch = text.match(/Index:\s*\d+\s*([^\n]+?)(?=\s*F\.N\.|$)/);
+            const fullName = nameMatch ? nameMatch[1].trim() : '';
+            
+            // Extract father's name - handle both "F.N.:" and "Father's Name:"
+            const fatherMatch = text.match(/(?:F\.?N\.?:|Father'?s?\s*Name:?)\s*([^\n]+?)(?=\s*(?:M\.?N\.?:|Mother'?s?\s*Name:?)|$)/i);
+            const fatherName = fatherMatch ? fatherMatch[1].trim() : '';
+            
+            // Extract mother's name - handle both "M.N.:" and "Mother's Name:"
+            const motherMatch = text.match(/(?:M\.?N\.?:|Mother'?s?\s*Name:?)\s*([^\n]+?)(?=\s*\d{11}|\s*Address|$)/i);
+            const motherName = motherMatch ? motherMatch[1].trim() : '';
+            
+            // Extract date of birth
+            const dobMatch = text.match(/DOB\s*:\s*(\d{4}-\d{2}-\d{2})/);
+            const dateOfBirth = dobMatch ? dobMatch[1] : '';
+            
+            // Extract contact numbers (looking for 11-digit numbers)
+            const phoneMatches = text.match(/\d{11}/g);
+            const contactNumber = phoneMatches ? phoneMatches[0] : '';
+            
+            // Extract roll number
+            const rollMatch = text.match(/Roll\s*:\s*(\d+)/);
+            const rollNumber = rollMatch ? rollMatch[1] : '';
+            
+            // Extract admission date
+            const admDateMatch = text.match(/Adm\. Date:\s*(\d+\/\d+\/\d+)/);
+            const admissionDate = admDateMatch ? admDateMatch[1] : '';
+            
+            // Extract address
+            const addressMatch = text.match(/Previous Ins\.\s*:\s*([^\n]+?)(?=\s*#|Page:|$)/s);
+            let address = '';
+            if (addressMatch) {
+                address = addressMatch[1].trim();
+            } else {
+                // Alternative address extraction
+                const addrPattern = /(?:BHATIA|JOHIRKONA|NIAMOTPUR|KARIMGANJ|KISHOREGANJ|PAKONDIA|BOGURA|SADAR|TILOKNATPUR|KARIAIL|NA NSREE|HOSSAINPUR|BIR HAZIPUR|HAZIPUR)/g;
+                const addrMatches = [...text.matchAll(addrPattern)];
+                if (addrMatches.length > 0) {
+                    address = addrMatches.map(m => m[0]).join(', ');
+                }
+            }
+            
+            return {
+                fullName,
+                fatherName,
+                motherName,
+                dateOfBirth,
+                contactNumber,
+                rollNumber,
+                indexNumber,
+                admissionDate,
+                className,
+                address
+            };
+        }
+
+        function parseStudentDataFromText(text, className) {
+            const students = [];
+            
+            // Find all student entries by matching index patterns
+            const indexPattern = /Index:\s*(\d+)/g;
+            const matches = [...text.matchAll(indexPattern)];
+            
+            matches.forEach(match => {
+                const indexNumber = match[1];
+                const indexPos = match.index;
+                
+                if (indexPos !== undefined) {
+                    // Extract text around the index match to find student details
+                    let startPos = indexPos;
+                    let endPos = text.indexOf('Page:', indexPos);
+                    
+                    if (endPos === -1) {
+                        endPos = text.length;
+                    }
+                    
+                    const studentText = text.slice(startPos, endPos);
+                    
+                    // Parse student information
+                    const student = parseStudentFromSection(studentText, indexNumber, className);
+                    if (student.fullName) {
+                        students.push(student);
+                    }
+                }
+            });
+            
+            return students;
+        }
+
+        // Extract class name from PDF header
+        function extractClassName(text) {
+            const classMatch = text.match(/Class\s*:\s*([^\s]+)/);
+            return classMatch ? classMatch[1].trim() : 'Unknown';
+        }
+
+        // Import students from PDF file
+        async function importStudentsFromPDF(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = async (e) => {
+                    try {
+                        const arrayBuffer = e.target?.result;
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        const numPages = pdf.numPages;

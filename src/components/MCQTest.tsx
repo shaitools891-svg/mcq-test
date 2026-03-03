@@ -1,30 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { syncResultToCloud, getSyncedResults, getAnonymousId } from '../utils/mcqSync';
-
-interface TestResult {
-  date: string;
-  score: number;
-  total: number;
-  percentage: number;
-  timeTaken: number;
-  answers: number[];
-}
-
-// Save result to localStorage
-const saveTestResult = (profileId: string, result: TestResult) => {
-  const storageKey = `mcq_results_${profileId}`;
-  const existingResults = JSON.parse(localStorage.getItem(storageKey) || '[]');
-  existingResults.push(result);
-  // Keep only last 10 results
-  const trimmedResults = existingResults.slice(-10);
-  localStorage.setItem(storageKey, JSON.stringify(trimmedResults));
-};
-
-// Get results for a profile
-const getTestResults = (profileId: string): TestResult[] => {
-  const storageKey = `mcq_results_${profileId}`;
-  return JSON.parse(localStorage.getItem(storageKey) || '[]');
-};
 import { 
   CheckCircle2, 
   XCircle, 
@@ -34,8 +8,7 @@ import {
   Award,
   Clock,
   BookOpen,
-  ChevronRight,
-  History
+  ChevronRight
 } from 'lucide-react';
 import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
@@ -398,28 +371,14 @@ const renderWithLatex = (text: string) => {
 };
 
 export default function MCQTest() {
-  // Selection states
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [selectedPaper, setSelectedPaper] = useState<string | null>(null);
-  const [selectedBoard, setSelectedBoard] = useState<string | null>(null);
-  const [showSelection, setShowSelection] = useState(true);
-  
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(new Array(questions.length).fill(-1));
   const [showResults, setShowResults] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
-  const [showHistory, setShowHistory] = useState(false);
-
-  // Handle test start
-  const handleStartTest = () => {
-    if (selectedSubject && selectedPaper && selectedBoard) {
-      setShowSelection(false);
-    }
-  };
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
+    let interval: NodeJS.Timeout;
     if (isTimerRunning && !showResults) {
       interval = setInterval(() => {
         setTimeElapsed(prev => prev + 1);
@@ -452,28 +411,9 @@ export default function MCQTest() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setIsTimerRunning(false);
     setShowResults(true);
-    
-    // Save result to localStorage
-    const profileId = localStorage.getItem('selectedProfile');
-    if (profileId) {
-      const score = calculateScore();
-      const percentage = Math.round((score / questions.length) * 100);
-      const result: TestResult = {
-        date: new Date().toISOString(),
-        score: score,
-        total: questions.length,
-        percentage: percentage,
-        timeTaken: timeElapsed,
-        answers: [...selectedAnswers]
-      };
-      saveTestResult(profileId, result);
-      
-      // Sync to cloud anonymously (with hashed ID)
-      await syncResultToCloud({ score, total: questions.length, percentage });
-    }
   };
 
   const handleRestart = () => {
@@ -506,155 +446,6 @@ export default function MCQTest() {
     return "Keep practicing! You'll do better! 💪";
   };
 
-  // Selection Screen
-  if (showSelection) {
-    const testInfo = `${selectedBoard || ''} ${selectedPaper === '1st' ? '১ম পত্র' : selectedPaper === '2nd' ? '২য় পত্র' : ''} - ${selectedSubject || ''}`;
-    
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 py-8 px-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 p-6 mb-6">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900/30 dark:to-violet-800/30 mb-4">
-                <BookOpen className="w-8 h-8 text-violet-500" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                MCQ টেস্ট নির্বাচন করুন
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                পরীক্ষা শুরু করতে নিচের তথ্যগুলো নির্বাচন করুন
-              </p>
-            </div>
-          </div>
-
-          {/* Selection Card */}
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 p-6 mb-6">
-            
-            {/* Subject Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                বিষয় নির্বাচন করুন
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: 'জীববিজ্ঞান', label: 'জীববিজ্ঞান', available: true },
-                  { value: 'রসায়ন', label: 'রসায়ন', available: false },
-                  { value: 'পদার্থবিজ্ঞান', label: 'পদার্থবিজ্ঞান', available: false },
-                  { value: 'গণিত', label: 'গণিত', available: false }
-                ].map((subject) => (
-                  <button
-                    key={subject.value}
-                    onClick={() => subject.available && setSelectedSubject(subject.value)}
-                    disabled={!subject.available}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                      selectedSubject === subject.value
-                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
-                        : subject.available
-                        ? 'border-gray-200 dark:border-zinc-700 hover:border-violet-300 dark:hover:border-violet-600'
-                        : 'border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                    }`}
-                  >
-                    <span className="font-medium">{subject.label}</span>
-                    {!subject.available && <span className="block text-xs opacity-60">(শীঘ্রই আসছে)</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Paper Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                পত্র নির্বাচন করুন
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: '1st', label: '১ম পত্র', available: false },
-                  { value: '2nd', label: '২য় পত্র', available: true }
-                ].map((paper) => (
-                  <button
-                    key={paper.value}
-                    onClick={() => paper.available && setSelectedPaper(paper.value)}
-                    disabled={!paper.available}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                      selectedPaper === paper.value
-                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
-                        : paper.available
-                        ? 'border-gray-200 dark:border-zinc-700 hover:border-violet-300 dark:hover:border-violet-600'
-                        : 'border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                    }`}
-                  >
-                    <span className="font-medium">{paper.label}</span>
-                    {!paper.available && <span className="block text-xs opacity-60">(শীঘ্রই আসছে)</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Board Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                বোর্ড নির্বাচন করুন
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: 'ঢাকা', label: 'ঢাকা বোর্ড', available: false },
-                  { value: 'কুমিল্লা', label: 'কুমিল্লা বোর্ড', available: true },
-                  { value: 'রাজশাহী', label: 'রাজশাহী বোর্ড', available: false },
-                  { value: 'চট্টগ্রাম', label: 'চট্টগ্রাম বোর্ড', available: false },
-                  { value: 'বরিশাল', label: 'বরিশাল বোর্ড', available: false },
-                  { value: 'সিলেট', label: 'সিলেট বোর্ড', available: false },
-                  { value: 'দিনাজপুর', label: 'দিনাজপুর বোর্ড', available: false },
-                  { value: 'ময়মনসিংহ', label: 'ময়মনসিংহ বোর্ড', available: false }
-                ].map((board) => (
-                  <button
-                    key={board.value}
-                    onClick={() => board.available && setSelectedBoard(board.value)}
-                    disabled={!board.available}
-                    className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                      selectedBoard === board.value
-                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
-                        : board.available
-                        ? 'border-gray-200 dark:border-zinc-700 hover:border-violet-300 dark:hover:border-violet-600'
-                        : 'border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                    }`}
-                  >
-                    <span className="font-medium text-sm">{board.label}</span>
-                    {!board.available && <span className="block text-xs opacity-60">(শীঘ্রই)</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Selected Info */}
-            {selectedSubject && selectedPaper && selectedBoard && (
-              <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-4 mb-6">
-                <p className="text-center text-violet-700 dark:text-violet-300">
-                  <span className="font-medium">{selectedBoard}</span> বোর্ড - 
-                  <span className="font-medium"> {selectedSubject}</span> 
-                  <span className="font-medium"> {selectedPaper === '1st' ? '১ম' : '২য়'} পত্র</span>
-                </p>
-              </div>
-            )}
-
-            {/* Start Button */}
-            <button
-              onClick={handleStartTest}
-              disabled={!selectedSubject || !selectedPaper || !selectedBoard}
-              className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 ${
-                selectedSubject && selectedPaper && selectedBoard
-                  ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/25'
-                  : 'bg-gray-200 dark:bg-zinc-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              পরীক্ষা শুরু করুন
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (showResults) {
     const score = calculateScore();
     const percentage = getScorePercentage();
@@ -669,7 +460,7 @@ export default function MCQTest() {
                 <Award className="w-10 h-10 text-amber-500" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {selectedBoard} বোর্ড - {selectedSubject} {selectedPaper === '1st' ? '১ম' : '২য়'} পত্র
+                কুমিল্লা বোর্ড ২০২৩ - জীববিজ্ঞান ২য় পত্র
               </h1>
               <p className="text-gray-600 dark:text-gray-400">MCQ Test Results</p>
             </div>
@@ -793,58 +584,6 @@ export default function MCQTest() {
             </div>
           </div>
 
-          {/* Previous Results */}
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 p-6 mb-6">
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="w-full flex items-center justify-between text-left"
-            >
-              <div className="flex items-center gap-3">
-                <History className="w-5 h-5 text-amber-500" />
-                <span className="font-semibold text-gray-900 dark:text-white">Previous Results</span>
-              </div>
-              <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${showHistory ? 'rotate-90' : ''}`} />
-            </button>
-            
-            {showHistory && (
-              <div className="mt-4 space-y-3">
-                {(() => {
-                  const profileId = localStorage.getItem('selectedProfile');
-                  const results = profileId ? getTestResults(profileId) : [];
-                  if (results.length === 0) {
-                    return (
-                      <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">
-                        No previous results yet. Take your first test!
-                      </p>
-                    );
-                  }
-                  return results.slice().reverse().map((result, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {result.score}/{result.total} ({result.percentage}%)
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(result.date).toLocaleDateString()} - {new Date(result.date).toLocaleTimeString()}
-                        </p>
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        result.percentage >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                        result.percentage >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
-                        {result.percentage >= 80 ? 'Excellent' : result.percentage >= 60 ? 'Good' : 'Needs Work'}
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </div>
-            )}
-          </div>
-
           {/* Restart Button */}
           <div className="text-center">
             <button
@@ -872,9 +611,9 @@ export default function MCQTest() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                {selectedBoard} বোর্ড ২০২৩
+                কুমিল্লা বোর্ড ২০২৩
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">{selectedSubject} {selectedPaper === '1st' ? '১ম' : '২য়'} পত্র (MCQ)</p>
+              <p className="text-gray-600 dark:text-gray-400">জীববিজ্ঞান ২য় পত্র (MCQ)</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
