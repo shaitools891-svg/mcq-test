@@ -10,6 +10,94 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 })
 
+// MCQ Results table operations
+interface MCQResult {
+  id?: number;
+  anonymous_id: string;
+  score: number;
+  total: number;
+  percentage: number;
+  timestamp: string;
+  synced: boolean;
+}
+
+// Save MCQ result to Supabase
+export async function saveMCQResult(result: {
+  profileId: string;
+  score: number;
+  total: number;
+  percentage: number;
+  answers: number[];
+}): Promise<boolean> {
+  try {
+    console.log('Saving MCQ result to Supabase:', result);
+    
+    const { data, error } = await supabase
+      .from('mcq_results')
+      .insert({
+        anonymous_id: result.profileId,
+        score: result.score,
+        total: result.total,
+        percentage: result.percentage,
+        timestamp: new Date().toISOString(),
+        synced: true
+      })
+      .select()
+    
+    if (error) {
+      console.error('Supabase MCQ save error:', JSON.stringify(error));
+      return false;
+    }
+    
+    console.log('MCQ result saved successfully:', data);
+    return true;
+  } catch (error: any) {
+    console.error('MCQ save failed:', error?.message || error);
+    return false;
+  }
+}
+
+// Load all MCQ results for a profile
+export async function loadMCQResults(profileId: string): Promise<MCQResult[]> {
+  try {
+    const { data, error } = await supabase
+      .from('mcq_results')
+      .select('*')
+      .eq('anonymous_id', profileId)
+      .order('timestamp', { ascending: false })
+    
+    if (error) {
+      console.error('Supabase MCQ load error:', JSON.stringify(error));
+      return [];
+    }
+    
+    return data || [];
+  } catch (error: any) {
+    console.error('MCQ load failed:', error?.message || error);
+    return [];
+  }
+}
+
+// Load all MCQ results (for admin)
+export async function loadAllMCQResults(): Promise<MCQResult[]> {
+  try {
+    const { data, error } = await supabase
+      .from('mcq_results')
+      .select('*')
+      .order('timestamp', { ascending: false })
+    
+    if (error) {
+      console.error('Supabase MCQ load all error:', JSON.stringify(error));
+      return [];
+    }
+    
+    return data || [];
+  } catch (error: any) {
+    console.error('MCQ load all failed:', error?.message || error);
+    return [];
+  }
+}
+
 // Sync keys for different data types
 export const SYNC_KEYS = {
   SCHEDULE: 'class_schedule',

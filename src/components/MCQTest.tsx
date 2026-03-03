@@ -14,6 +14,8 @@ import {
 import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
 import { useTimer } from '../hooks/useTimer';
+import { toast } from 'sonner';
+import { saveMCQResult } from '../utils/supabaseClient';
 
 // Get current profile info
 const getProfileInfo = (): { name: string } | null => {
@@ -453,6 +455,45 @@ export default function MCQTest() {
     } catch (e) {
       console.log('Timer pause error:', e);
     }
+    
+    // Save results
+    const profileId = localStorage.getItem('selectedProfile');
+    if (profileId) {
+      const score = calculateScore();
+      const percentage = getScorePercentage();
+      const resultData = {
+        date: new Date().toISOString(),
+        score: score,
+        total: questions.length,
+        percentage: percentage,
+        timeTaken: 15 * 60 - timeLeft,
+        answers: selectedAnswers
+      };
+      
+      // Save to localStorage
+      const storageKey = `mcq_results_${profileId}`;
+      const existingResults = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      existingResults.push(resultData);
+      localStorage.setItem(storageKey, JSON.stringify(existingResults));
+      
+      // Try to sync to Supabase (non-blocking)
+      saveMCQResult({
+        profileId: profileId,
+        score: score,
+        total: questions.length,
+        percentage: percentage,
+        answers: selectedAnswers
+      }).then(success => {
+        if (success) {
+          console.log('Results synced to cloud');
+        }
+      }).catch((err: unknown) => {
+        console.log('Supabase sync failed (offline mode):', err);
+      });
+      
+      toast.success('Test completed! Results saved.');
+    }
+    
     setShowResults(true);
   };
 
