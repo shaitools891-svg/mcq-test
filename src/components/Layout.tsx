@@ -10,14 +10,13 @@ import {
   ChevronDown as ChevronDownIcon,
   Trash2 as Trash2Icon,
   CheckCircle2 as CheckCircleIcon,
-  Home as HomeIcon,
   Info as InfoIcon,
   ArrowLeft as ArrowLeftIcon,
   Github as GHIcon,
   Heart as HeartIcon,
-  Download,
-  HelpCircle
+  Download
 } from 'lucide-react'
+import BottomNav from './BottomNav'
 import { Capacitor } from '@capacitor/core'
 import { Theme, Tool, ToolCategory, ViewMode } from '../types'
 import { PaperKnifeLogo } from './Logo'
@@ -278,25 +277,9 @@ export default function Layout({ children, theme, toggleTheme, tools, onFileDrop
         </footer>
       )}
 
-      {/* Titan Bottom Navigation (Solid, Grounded) */}
+      {/* Bottom Navigation */}
       {shouldShowNav && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-gray-100 dark:border-zinc-800 flex items-end justify-between px-6 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-3 z-[100] shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
-          <button 
-            onClick={() => { hapticNavigation(); navigate('/'); }}
-            className={`flex flex-col items-center gap-1.5 flex-1 transition-all ${location.pathname === '/' ? 'text-rose-500' : 'text-gray-400 dark:text-zinc-600'}`}
-          >
-            <HomeIcon size={24} strokeWidth={location.pathname === '/' ? 2.5 : 2} />
-            <span className="text-[10px] font-bold">Home</span>
-          </button>
-
-          <button
-            onClick={() => { hapticNavigation(); navigate('/mcq-test'); }}
-            className={`flex flex-col items-center gap-1.5 flex-1 transition-all ${location.pathname === '/mcq-test' ? 'text-rose-500' : 'text-gray-400 dark:text-zinc-600'}`}
-          >
-            <HelpCircle size={24} strokeWidth={location.pathname === '/mcq-test' ? 2.5 : 2} />
-            <span className="text-[10px] font-bold">MCQ Test</span>
-          </button>
-        </nav>
+        <BottomNav hapticNavigation={hapticNavigation} />
       )}
 
       {/* Sidebar History Drawer */}

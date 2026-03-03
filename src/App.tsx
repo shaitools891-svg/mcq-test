@@ -13,6 +13,7 @@ import {
   Smartphone as SmartphoneIcon, Monitor as MonitorIcon
 } from 'lucide-react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
 import { Toaster } from 'sonner'
 import { Theme, ViewMode, Tool } from './types'
 import Layout from './components/Layout'
@@ -217,7 +218,8 @@ function App() {
             
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<ProfileSelection />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/students" element={<StudentDirectory />} />
                 <Route path="/teachers" element={<TeacherDatabase />} />
                 <Route path="/android-tools" element={<AndroidToolsView tools={activeTools} />} />
