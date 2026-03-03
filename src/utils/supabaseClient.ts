@@ -21,7 +21,7 @@ interface MCQResult {
   synced: boolean;
 }
 
-// Simple hash function for privacy
+// Simple hash function for privacy - matches the format in database
 function simpleHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -29,7 +29,7 @@ function simpleHash(str: string): string {
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash;
   }
-  return Math.abs(hash).toString(16);
+  return 'hashed_' + Math.abs(hash).toString(16).padStart(10, '0');
 }
 
 export function hashProfileId(profileId: string): string {
