@@ -419,7 +419,7 @@ export default function MCQTest() {
   };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (isTimerRunning && !showResults) {
       interval = setInterval(() => {
         setTimeElapsed(prev => prev + 1);
