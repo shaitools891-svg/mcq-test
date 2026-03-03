@@ -577,11 +577,17 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
 // Main Dashboard Component
 export default function Dashboard() {
   const [profile, setProfile] = useState<{ name: string; role: string; avatar: string } | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const profileInfo = getProfileInfo();
+    if (!profileInfo) {
+      // No profile selected, redirect to profile selection
+      navigate('/');
+      return;
+    }
     setProfile(profileInfo);
-  }, []);
+  }, [navigate]);
 
   if (!profile) {
     return (
