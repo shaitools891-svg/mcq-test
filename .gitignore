@@ -47,3 +47,7 @@ android/app/src/main/res/drawable-port-mdpi/splash.png
 android/app/src/main/res/drawable-port-xhdpi/splash.png
 android/app/src/main/res/drawable-port-xxhdpi/splash.png
 android/app/src/main/res/drawable-port-xxxhdpi/splash.png.gemini/
+
+# JDK
+jdk-17.0.2/
+jdk-21.0.2/
