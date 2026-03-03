@@ -40,6 +40,18 @@ const getProfileInfo = (): { name: string; role: string; avatar: string } | null
     shapla: { name: 'Shapla', role: 'student', avatar: '' },
     shakib: { name: 'Shakib', role: 'admin', avatar: '' }
   };
+  
+  // Load custom avatar from localStorage
+  const savedAvatars = localStorage.getItem('customAvatars');
+  if (savedAvatars) {
+    const customAvatars = JSON.parse(savedAvatars);
+    Object.keys(profiles).forEach(key => {
+      if (customAvatars[key]) {
+        profiles[key].avatar = customAvatars[key];
+      }
+    });
+  }
+  
   return profileId ? (profiles[profileId] || null) : null;
 };
 
@@ -325,6 +337,17 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
     eshita: '',
     shapla: ''
   };
+  
+  // Load custom avatars for students
+  const savedAvatars = localStorage.getItem('customAvatars');
+  if (savedAvatars) {
+    const customAvatars = JSON.parse(savedAvatars);
+    Object.keys(studentAvatars).forEach(key => {
+      if (customAvatars[key]) {
+        studentAvatars[key] = customAvatars[key];
+      }
+    });
+  }
 
   const getStudentAverage = (studentId: string) => {
     const results = studentsResults[studentId] || [];

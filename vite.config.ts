@@ -15,6 +15,7 @@ export default defineConfig({
     target: 'esnext',
     minify: 'esbuild',
     sourcemap: false,
+    outDir: 'docs',
     rollupOptions: {
       output: {
         manualChunks: {
