@@ -13,6 +13,9 @@ import {
   Trash2
 } from 'lucide-react'
 
+// Base path for deployed assets (Vite base is /mcq-test/)
+const ASSET_BASE = '/mcq-test/';
+
 interface TestResult {
   date: string;
   score: number;
@@ -32,10 +35,10 @@ interface BookmarkedQuestion {
 const getProfileInfo = (): { name: string; role: string; avatar: string } | null => {
   const profileId = localStorage.getItem('selectedProfile');
   const profiles: Record<string, { name: string; role: string; avatar: string }> = {
-    aliza: { name: 'Aliza', role: 'student', avatar: `${import.meta.env.BASE_URL}aliza.jpg` },
-    eshita: { name: 'Eshita', role: 'student', avatar: `${import.meta.env.BASE_URL}eshita.jpg` },
+    aliza: { name: 'Aliza', role: 'student', avatar: '' },
+    eshita: { name: 'Eshita', role: 'student', avatar: '' },
     shapla: { name: 'Shapla', role: 'student', avatar: '' },
-    shakib: { name: 'Shakib', role: 'admin', avatar: `${import.meta.env.BASE_URL}shakib.jpg` }
+    shakib: { name: 'Shakib', role: 'admin', avatar: '' }
   };
   return profileId ? (profiles[profileId] || null) : null;
 };
@@ -286,8 +289,8 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
   };
 
   const studentAvatars: Record<string, string> = {
-    aliza: `${import.meta.env.BASE_URL}aliza.jpg`,
-    eshita: `${import.meta.env.BASE_URL}eshita.jpg`,
+    aliza: '',
+    eshita: '',
     shapla: ''
   };
 

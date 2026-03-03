@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+// Base path for deployed assets (Vite base is /mcq-test/)
+const ASSET_BASE = '/mcq-test/';
+
 interface Profile {
   id: string
   name: string
@@ -13,13 +16,13 @@ const profiles: Profile[] = [
     id: 'aliza',
     name: 'Aliza',
     role: 'student',
-    avatar: `${import.meta.env.BASE_URL}aliza.jpg`
+    avatar: ''
   },
   {
     id: 'eshita',
     name: 'Eshita',
     role: 'student',
-    avatar: `${import.meta.env.BASE_URL}eshita.jpg`
+    avatar: ''
   },
   {
     id: 'shapla',
@@ -31,7 +34,7 @@ const profiles: Profile[] = [
     id: 'shakib',
     name: 'Shakib',
     role: 'admin',
-    avatar: `${import.meta.env.BASE_URL}shakib.jpg`
+    avatar: ''
   }
 ]
 
@@ -56,7 +59,7 @@ export default function ProfileSelection() {
       <div className="mb-8">
         <div className="w-24 h-24 rounded-full bg-white dark:bg-zinc-800 shadow-xl shadow-rose-500/20 flex items-center justify-center overflow-hidden border-4 border-white dark:border-zinc-700">
           <img 
-            src={`${import.meta.env.BASE_URL}matherror.jpg`} 
+            src="" 
             alt="Logo" 
             className="w-full h-full object-cover"
             onError={(e) => {
