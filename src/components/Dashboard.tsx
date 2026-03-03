@@ -32,10 +32,10 @@ interface BookmarkedQuestion {
 const getProfileInfo = (): { name: string; role: string; avatar: string } | null => {
   const profileId = localStorage.getItem('selectedProfile');
   const profiles: Record<string, { name: string; role: string; avatar: string }> = {
-    aliza: { name: 'Aliza', role: 'student', avatar: './aliza.jpg' },
-    eshita: { name: 'Eshita', role: 'student', avatar: './eshita.jpg' },
+    aliza: { name: 'Aliza', role: 'student', avatar: '/aliza.jpg' },
+    eshita: { name: 'Eshita', role: 'student', avatar: '/eshita.jpg' },
     shapla: { name: 'Shapla', role: 'student', avatar: '' },
-    shakib: { name: 'Shakib', role: 'admin', avatar: './shakib.jpg' }
+    shakib: { name: 'Shakib', role: 'admin', avatar: '/shakib.jpg' }
   };
   return profileId ? (profiles[profileId] || null) : null;
 };
@@ -286,8 +286,8 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
   };
 
   const studentAvatars: Record<string, string> = {
-    aliza: './aliza.jpg',
-    eshita: './eshita.jpg',
+    aliza: '/aliza.jpg',
+    eshita: '/eshita.jpg',
     shapla: ''
   };
 
