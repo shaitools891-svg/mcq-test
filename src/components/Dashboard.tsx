@@ -96,7 +96,7 @@ const StudentDashboard = ({ profile: _profile }: { profile: { name: string; role
       setBookmarks(getBookmarks(profileId));
       
       // Then load from Supabase and merge
-      loadMCQResults(profileId).then(cloudResults => {
+      loadMCQResults(hashProfileId(profileId)).then(cloudResults => {
         if (cloudResults.length > 0) {
           // Merge cloud results with local, avoiding duplicates
           const localIds = new Set(localResults.map(r => `${r.date}-${r.score}-${r.percentage}`));
