@@ -21,6 +21,112 @@ interface MCQResult {
   synced: boolean;
 }
 
+// Simple hash function for privacy
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(16);
+}
+
+export function hashProfileId(profileId: string): string {
+  return simpleHash(profileId);
+}
+
+// Profile Pictures table operations
+interface ProfilePicture {
+  id?: number;
+  hashed_id: string;
+  picture_data: string; // Base64 encoded image
+  timestamp: string;
+}
+
+// Save profile picture to Supabase (using app_data table with hashed key)
+export async function saveProfilePictureToCloud(profileId: string, pictureData: string): Promise<boolean> {
+  try {
+    console.log('Saving profile picture to Supabase for:', profileId);
+    const hashedId = hashProfileId(profileId);
+    const storageKey = `profile_pic_${hashedId}`;
+    
+    const { data, error } = await supabase
+      .from('app_data')
+      .upsert({
+        id: storageKey,
+        data: {
+          profileId: profileId,
+          picture: pictureData,
+          timestamp: new Date().toISOString()
+        },
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' })
+      .select()
+    
+    if (error) {
+      console.error('Supabase profile picture save error:', JSON.stringify(error));
+      return false;
+    }
+    
+    console.log('Profile picture saved to cloud successfully');
+    return true;
+  } catch (error: any) {
+    console.error('Profile picture save failed:', error?.message || error);
+    return false;
+  }
+}
+
+// Load profile picture from Supabase
+export async function loadProfilePictureFromCloud(profileId: string): Promise<string | null> {
+  try {
+    const hashedId = hashProfileId(profileId);
+    const storageKey = `profile_pic_${hashedId}`;
+    
+    const { data, error } = await supabase
+      .from('app_data')
+      .select('data')
+      .eq('id', storageKey)
+      .single()
+    
+    if (error || !data?.data) {
+      return null;
+    }
+    
+    return data.data.picture || null;
+  } catch (error: any) {
+    console.error('Load profile picture failed:', error?.message || error);
+    return null;
+  }
+}
+
+// Admin: Get all profile pictures
+export async function getAllProfilePictures(): Promise<Record<string, string>> {
+  try {
+    const { data, error } = await supabase
+      .from('app_data')
+      .select('id, data')
+      .like('id', 'profile_pic_%')
+    
+    if (error) {
+      console.error('Get all pictures error:', JSON.stringify(error));
+      return {};
+    }
+    
+    const pictures: Record<string, string> = {};
+    data?.forEach(item => {
+      if (item.data?.profileId && item.data?.picture) {
+        pictures[item.data.profileId] = item.data.picture;
+      }
+    });
+    
+    return pictures;
+  } catch (error: any) {
+    console.error('Get all pictures failed:', error?.message || error);
+    return {};
+  }
+}
+
 // Save MCQ result to Supabase
 export async function saveMCQResult(result: {
   profileId: string;

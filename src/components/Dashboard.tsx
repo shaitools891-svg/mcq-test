@@ -12,6 +12,7 @@ import {
   Activity,
   Trash2
 } from 'lucide-react'
+import { getAllProfilePictures, loadProfilePictureFromCloud } from '../utils/supabaseClient'
 
 // Base path for deployed assets (Vite base is /mcq-test/)
 const ASSET_BASE = '/mcq-test/';

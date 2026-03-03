@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { saveProfilePictureToCloud } from '../utils/supabaseClient'
 
 // Base path for deployed assets
 const ASSET_BASE = '';
@@ -84,13 +85,21 @@ export default function ProfileSelection() {
         const result = event.target?.result as string
         const updatedAvatars = { ...customAvatars, [editingProfileId]: result }
         setCustomAvatars(updatedAvatars)
-        localStorage.setItem('customAvatars', JSON.stringify(result))
         
-        // Also save to localStorage properly
+        // Save to localStorage
         const stored = localStorage.getItem('customAvatars')
         const parsed = stored ? JSON.parse(stored) : {}
         parsed[editingProfileId] = result
         localStorage.setItem('customAvatars', JSON.stringify(parsed))
+        
+        // Sync to Supabase cloud (non-blocking)
+        saveProfilePictureToCloud(editingProfileId, result).then(success => {
+          if (success) {
+            console.log('Profile picture synced to cloud')
+          }
+        }).catch(err => {
+          console.log('Cloud sync failed (offline mode):', err)
+        })
       }
       reader.readAsDataURL(file)
     }

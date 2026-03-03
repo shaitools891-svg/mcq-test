@@ -15,7 +15,7 @@ import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
 import { useTimer } from '../hooks/useTimer';
 import { toast } from 'sonner';
-import { saveMCQResult } from '../utils/supabaseClient';
+import { saveMCQResult, hashProfileId } from '../utils/supabaseClient';
 
 // Get current profile info
 const getProfileInfo = (): { name: string } | null => {
@@ -476,9 +476,9 @@ export default function MCQTest() {
       existingResults.push(resultData);
       localStorage.setItem(storageKey, JSON.stringify(existingResults));
       
-      // Try to sync to Supabase (non-blocking)
+      // Try to sync to Supabase (non-blocking) - use hashed profile ID for privacy
       saveMCQResult({
-        profileId: profileId,
+        profileId: hashProfileId(profileId),
         score: score,
         total: questions.length,
         percentage: percentage,
