@@ -13,10 +13,10 @@ if [ $? -eq 0 ]; then
     echo "✅ Build successful!"
     
     # Add dist folder to git
-    echo "📤 Pushing to GitHub Pages..."
+    echo "📤 Pushing to main branch..."
     git add dist -f
-    git commit -m "Deploy to GitHub Pages"
-    git subtree push --prefix dist origin gh-pages
+    git commit -m "Deploy to main branch"
+    git push origin HEAD:main --force
     
     echo "🎉 Deployment complete!"
     echo "🌐 Visit: https://shaitools891-svg.github.io/mcq-test"
