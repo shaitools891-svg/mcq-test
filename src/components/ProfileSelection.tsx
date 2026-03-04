@@ -18,13 +18,13 @@ const profiles: Profile[] = [
     id: 'aliza',
     name: 'Aliza',
     role: 'student',
-    avatar: '/assets/aliza.jpg'
+    avatar: './assets/aliza.jpg'
   },
   {
     id: 'eshita',
     name: 'Eshita',
     role: 'student',
-    avatar: '/assets/eshita.jpg'
+    avatar: './assets/eshita.jpg'
   },
   {
     id: 'shapla',
@@ -36,7 +36,7 @@ const profiles: Profile[] = [
     id: 'shakib',
     name: 'Shakib',
     role: 'admin',
-    avatar: '/assets/shakib.jpg'
+    avatar: './assets/shakib.jpg'
   }
 ]
 
