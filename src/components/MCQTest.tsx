@@ -545,7 +545,9 @@ export default function MCQTest() {
             {/* Start Button */}
             <button
               onClick={() => {
+                console.log('Starting test with:', { board: selectedBoard, paper: selectedPaper, subject: selectedSubject });
                 const loadedQuestions = getQuestionsForSelection(selectedBoard!, selectedPaper!, selectedSubject!);
+                console.log('Loaded questions:', loadedQuestions.length, 'first q:', loadedQuestions[0]?.question?.substring(0, 30));
                 setQuestions(loadedQuestions);
                 setTestStarted(true);
               }}
