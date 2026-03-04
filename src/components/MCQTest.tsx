@@ -176,6 +176,13 @@ export default function MCQTest() {
     // Save results
     const profileId = localStorage.getItem('selectedProfile');
     if (profileId) {
+      // Skip saving for admin profile (admin may run tests for checking)
+      if (profileId === 'shakib') {
+        toast.info('Admin test mode - results not saved');
+        setShowResults(true);
+        return;
+      }
+      
       const score = calculateScore();
       const percentage = getScorePercentage();
       const resultData = {
