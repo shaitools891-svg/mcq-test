@@ -36,10 +36,10 @@ interface BookmarkedQuestion {
 const getProfileInfo = (): { name: string; role: string; avatar: string } | null => {
   const profileId = localStorage.getItem('selectedProfile');
   const profiles: Record<string, { name: string; role: string; avatar: string }> = {
-    aliza: { name: 'Aliza', role: 'student', avatar: '' },
-    eshita: { name: 'Eshita', role: 'student', avatar: '' },
+    aliza: { name: 'Aliza', role: 'student', avatar: '/assets/aliza.jpg' },
+    eshita: { name: 'Eshita', role: 'student', avatar: '/assets/eshita.jpg' },
     shapla: { name: 'Shapla', role: 'student', avatar: '' },
-    shakib: { name: 'Shakib', role: 'admin', avatar: '' }
+    shakib: { name: 'Shakib', role: 'admin', avatar: '/assets/shakib.jpg' }
   };
   
   // Load custom avatar from localStorage
