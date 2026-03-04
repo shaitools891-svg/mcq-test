@@ -47,15 +47,24 @@ interface Question {
 
 // Map board selections to question data
 const getQuestionsForSelection = (board: string, paper: string, subject: string): Question[] => {
+  console.log('getQuestionsForSelection called with:', { board, paper, subject });
+  
   if (subject === 'biology' && paper === '2nd') {
+    console.log('Condition matched: biology + 2nd paper');
     if (board === 'comilla') {
+      console.log('Returning COMILLA questions');
       return comilla2023Bio2nd as Question[];
     }
     if (board === 'dhaka') {
+      console.log('Returning DHAKA questions');
       return dhaka2023Bio2nd as Question[];
     }
+    console.log('Board not matched, board value:', board);
+  } else {
+    console.log('Condition NOT matched - subject:', subject, 'paper:', paper);
   }
   // Default to Comilla board
+  console.log('Returning DEFAULT (Comilla) questions');
   return comilla2023Bio2nd as Question[];
 };
 
@@ -524,7 +533,10 @@ export default function MCQTest() {
                 {boards.map((board) => (
                   <button
                     key={board.id}
-                    onClick={() => !board.disabled && setSelectedBoard(board.id)}
+                    onClick={() => {
+                      console.log('Board clicked:', board.id);
+                      !board.disabled && setSelectedBoard(board.id);
+                    }}
                     disabled={!selectedPaper || board.disabled}
                     className={`p-4 rounded-xl border-2 transition-all text-center ${
                       !selectedPaper || board.disabled
