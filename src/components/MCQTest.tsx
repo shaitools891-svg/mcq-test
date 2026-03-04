@@ -662,9 +662,12 @@ export default function MCQTest() {
                 <p className="text-gray-700 dark:text-gray-300 mb-3">{currentQ.stem}</p>
               )}
               {currentQ.stem_image && (
-                <div className="flex items-center gap-3 text-amber-600 dark:text-amber-400">
-                  <ImageIcon className="w-5 h-5" />
-                  <span className="text-sm font-medium">{currentQ.stem_image}</span>
+                <div className="mt-3">
+                  <img 
+                    src={`/assets/${currentQ.stem_image}`} 
+                    alt="Question stem" 
+                    className="max-w-full h-auto rounded-lg"
+                  />
                 </div>
               )}
             </div>

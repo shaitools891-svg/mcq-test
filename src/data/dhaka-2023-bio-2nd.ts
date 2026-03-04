@@ -68,7 +68,7 @@ export const dhaka2023Bio2nd: Question[] = [
   },
   {
     id: 6,
-    stem: "Heart diagram showing x=SA Node, y=Cardiac Muscle.",
+    stem_image: "heart.png",
     question: "'x' অংশের কার্যহীনতায় হৃদপিণ্ডের কোন প্রকোষ্ঠে কোনো লিড প্রবেশ করানো হয় না?",
     options: ["ডান অ্যাট্রিয়াম", "বাম অ্যাট্রিয়াম", "ডান ভেন্ট্রিকল", "বাম ভেন্ট্রিকল"],
     correct_index: 0,
@@ -81,6 +81,7 @@ export const dhaka2023Bio2nd: Question[] = [
   },
   {
     id: 7,
+    stem_image: "heart.png",
     question: "'y' (হৃদপেশি) এর ক্ষেত্রে নিচের কোনটি সঠিক?",
     options: ["সংযোজী টিস্যু", "নিলয়ের প্রসারণ ঘটায়", "অ্যাকশন পটেনশিয়াল সৃষ্টি করে", "হার্টবিট শুরু করে"],
     correct_index: 2,
@@ -141,7 +142,7 @@ export const dhaka2023Bio2nd: Question[] = [
   },
   {
     id: 12,
-    stem: "Digestive system showing x=Pancreas, y=Duodenum.",
+    stem_image: "stomach.png",
     question: "'y' চিহ্নিত অংশটি কোন অঙ্গের সাথে যুক্ত?",
     options: ["অগ্ন্যাশয়", "ক্ষুদ্রান্ত্র", "যকৃৎ", "ফুসফুস"],
     correct_index: 1,
@@ -154,6 +155,7 @@ export const dhaka2023Bio2nd: Question[] = [
   },
   {
     id: 13,
+    stem_image: "stomach.png",
     question: "উদ্দীপকের 'x' (অগ্ন্যাশয়) চিহ্নিত অংশটির কাজ—",
     options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"],
     correct_index: 2,
