@@ -664,7 +664,7 @@ export default function MCQTest() {
               {currentQ.stem_image && (
                 <div className="mt-3">
                   <img 
-                    src={`/assets/${currentQ.stem_image}`} 
+                    src={`./assets/${currentQ.stem_image}`} 
                     alt="Question stem" 
                     className="max-w-full h-auto rounded-lg"
                   />
