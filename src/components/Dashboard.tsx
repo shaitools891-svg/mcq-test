@@ -12,7 +12,7 @@ import {
   Activity,
   Trash2
 } from 'lucide-react'
-import { getAllProfilePictures, loadProfilePictureFromCloud, loadMCQResults, loadAllMCQResults, hashProfileId } from '../utils/supabaseClient'
+import { getAllProfilePictures, loadProfilePictureFromCloud, loadMCQResults, loadAllMCQResults, deleteMCQResults, hashProfileId } from '../utils/supabaseClient'
 
 // Base path for deployed assets (Vite base is /mcq-test/)
 const ASSET_BASE = '/mcq-test/';
@@ -448,20 +448,34 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
     return Math.round(total / allResults.length);
   };
 
-  const clearStudentResults = (studentId: string) => {
+  const clearStudentResults = async (studentId: string) => {
     if (confirm(`Are you sure you want to reset all test results for ${studentNames[studentId]}?`)) {
+      // Delete from localStorage
       const storageKey = `mcq_results_${studentId}`;
       localStorage.removeItem(storageKey);
+      
+      // Delete from Supabase
+      const hashedId = hashProfileId(studentId);
+      await deleteMCQResults(hashedId);
+      
       setStudentsResults(getAllStudentsResults());
     }
   };
 
-  const clearAllActivity = () => {
+  const clearAllActivity = async () => {
     if (confirm('Are you sure you want to delete all students\' activity data?')) {
+      // Delete from localStorage
       Object.keys(studentNames).forEach(studentId => {
         const storageKey = `mcq_results_${studentId}`;
         localStorage.removeItem(storageKey);
       });
+      
+      // Delete from Supabase
+      for (const studentId of Object.keys(studentNames)) {
+        const hashedId = hashProfileId(studentId);
+        await deleteMCQResults(hashedId);
+      }
+      
       setStudentsResults({});
     }
   };

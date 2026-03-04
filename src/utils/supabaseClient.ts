@@ -204,6 +204,26 @@ export async function loadAllMCQResults(): Promise<MCQResult[]> {
   }
 }
 
+// Delete MCQ results for a profile from Supabase
+export async function deleteMCQResults(profileId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('mcq_results')
+      .delete()
+      .eq('anonymous_id', profileId)
+    
+    if (error) {
+      console.error('Supabase MCQ delete error:', JSON.stringify(error));
+      return false;
+    }
+    
+    return true;
+  } catch (error: any) {
+    console.error('MCQ delete failed:', error?.message || error);
+    return false;
+  }
+}
+
 // Sync keys for different data types
 export const SYNC_KEYS = {
   SCHEDULE: 'class_schedule',
