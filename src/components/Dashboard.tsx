@@ -149,17 +149,6 @@ const StudentDashboard = ({ profile: _profile }: { profile: { name: string; role
     return Math.max(...results.map(r => r.percentage));
   };
 
-  const clearMyResults = () => {
-    if (confirm('Are you sure you want to delete all your activity data?')) {
-      const profileId = localStorage.getItem('selectedProfile');
-      if (profileId) {
-        const storageKey = `mcq_results_${profileId}`;
-        localStorage.removeItem(storageKey);
-        setResults([]);
-      }
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
 
@@ -309,18 +298,7 @@ const StudentDashboard = ({ profile: _profile }: { profile: { name: string; role
 
         {activeTab === 'activity' && (
           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Activity Log</h3>
-              {results.length > 0 && (
-                <button
-                  onClick={clearMyResults}
-                  className="text-xs text-rose-500 hover:text-rose-600 flex items-center gap-1"
-                >
-                  <Trash2 size={14} />
-                  Delete All
-                </button>
-              )}
-            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Activity Log</h3>
             {results.length === 0 ? (
               <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">No activity yet</p>
             ) : (
@@ -475,6 +453,16 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
       const storageKey = `mcq_results_${studentId}`;
       localStorage.removeItem(storageKey);
       setStudentsResults(getAllStudentsResults());
+    }
+  };
+
+  const clearAllActivity = () => {
+    if (confirm('Are you sure you want to delete all students\' activity data?')) {
+      Object.keys(studentNames).forEach(studentId => {
+        const storageKey = `mcq_results_${studentId}`;
+        localStorage.removeItem(storageKey);
+      });
+      setStudentsResults({});
     }
   };
 
@@ -641,7 +629,18 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
 
         {activeTab === 'activity' && (
           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Recent Activity</h3>
+              {getTotalTests() > 0 && (
+                <button
+                  onClick={clearAllActivity}
+                  className="text-xs text-rose-500 hover:text-rose-600 flex items-center gap-1"
+                >
+                  <Trash2 size={14} />
+                  Delete All
+                </button>
+              )}
+            </div>
             {getTotalTests() === 0 ? (
               <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">No activity yet</p>
             ) : (
