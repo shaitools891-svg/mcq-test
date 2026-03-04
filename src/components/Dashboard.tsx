@@ -470,9 +470,10 @@ const AdminDashboard = ({ profile }: { profile: { name: string; role: string; av
         localStorage.removeItem(storageKey);
       });
       
-      // Delete from Supabase
-      for (const studentId of Object.keys(studentNames)) {
-        const hashedId = hashProfileId(studentId);
+      // Delete from Supabase - for all students AND admin
+      const allProfileIds = [...Object.keys(studentNames), 'shakib'];
+      for (const profileId of allProfileIds) {
+        const hashedId = hashProfileId(profileId);
         await deleteMCQResults(hashedId);
       }
       
