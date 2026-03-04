@@ -45,6 +45,22 @@ interface Question {
   year?: number;
 }
 
+// Helper function to get board display name
+const getBoardDisplayName = (boardId: string | null): string => {
+  if (!boardId) return '';
+  const boardNames: Record<string, string> = {
+    comilla: 'কুমিল্লা বোর্ড',
+    dhaka: 'ঢাকা বোর্ড',
+    rajshahi: 'রাজশাহী বোর্ড',
+    chittagong: 'চট্টগ্রাম বোর্ড',
+    barisal: 'বরিশাল বোর্ড',
+    sylhet: 'সিলেট বোর্ড',
+    dinajpur: 'দিনাজপুর বোর্ড',
+    mymensingh: 'ময়মনসিংহ বোর্ড'
+  };
+  return boardNames[boardId] || '';
+};
+
 // Map board selections to question data
 const getQuestionsForSelection = (board: string, paper: string, subject: string): Question[] => {
   if (subject === 'biology' && paper === '2nd') {
@@ -252,7 +268,7 @@ export default function MCQTest() {
                 <Award className="w-10 h-10 text-amber-500" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                কুমিল্লা বোর্ড ২০২৩ - জীববিজ্ঞান ২য় পত্র
+                {getBoardDisplayName(selectedBoard)} ২০২৩ - জীববিজ্ঞান ২য় পত্র
               </h1>
               <p className="text-gray-600 dark:text-gray-400">MCQ Test Results</p>
             </div>
@@ -605,7 +621,7 @@ export default function MCQTest() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                কুমিল্লা বোর্ড ২০২৩
+                {getBoardDisplayName(selectedBoard)} ২০২৩
               </h1>
               <p className="text-gray-600 dark:text-gray-400">জীববিজ্ঞান ২য় পত্র (MCQ)</p>
             </div>
