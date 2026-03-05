@@ -17,7 +17,7 @@ import { InlineMath } from 'react-katex';
 import { useTimer } from '../hooks/useTimer';
 import { toast } from 'sonner';
 import { saveMCQResult, hashProfileId } from '../utils/supabaseClient';
-import { comilla2023Bio2nd, dhaka2023Bio2nd } from '../data';
+import { comilla2023Bio2nd, dhaka2023Bio2nd, udvashWeeklyBio2nd } from '../data';
 
 // Get current profile info
 const getProfileInfo = (): { name: string } | null => {
@@ -45,12 +45,13 @@ interface Question {
   year?: number;
 }
 
-// Helper function to get board display name
-const getBoardDisplayName = (boardId: string | null): string => {
+// Helper function to get board display name with year
+const getBoardDisplayNameWithYear = (boardId: string | null): string => {
   if (!boardId) return '';
   const boardNames: Record<string, string> = {
     comilla: 'কুমিল্লা বোর্ড',
     dhaka: 'ঢাকা বোর্ড',
+    udvash: 'উদ্ভাস উইকলি',
     rajshahi: 'রাজশাহী বোর্ড',
     chittagong: 'চট্টগ্রাম বোর্ড',
     barisal: 'বরিশাল বোর্ড',
@@ -58,7 +59,12 @@ const getBoardDisplayName = (boardId: string | null): string => {
     dinajpur: 'দিনাজপুর বোর্ড',
     mymensingh: 'ময়মনসিংহ বোর্ড'
   };
-  return boardNames[boardId] || '';
+  const name = boardNames[boardId] || '';
+  // Don't show year for UDVASH
+  if (boardId === 'udvash') {
+    return name;
+  }
+  return name ? `${name} ২০২৩` : '';
 };
 
 // Map board selections to question data
@@ -69,6 +75,9 @@ const getQuestionsForSelection = (board: string, paper: string, subject: string)
     }
     if (board === 'dhaka') {
       return dhaka2023Bio2nd as Question[];
+    }
+    if (board === 'udvash') {
+      return udvashWeeklyBio2nd as Question[];
     }
   }
   // Default to Comilla board
@@ -275,7 +284,7 @@ export default function MCQTest() {
                 <Award className="w-10 h-10 text-amber-500" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {getBoardDisplayName(selectedBoard)} ২০২৩ - জীববিজ্ঞান ২য় পত্র
+                {getBoardDisplayNameWithYear(selectedBoard)} - জীববিজ্ঞান ২য় পত্র
               </h1>
               <p className="text-gray-600 dark:text-gray-400">MCQ Test Results</p>
             </div>
@@ -436,6 +445,7 @@ export default function MCQTest() {
     const boards = [
       { id: 'comilla', name: 'Comilla', nameBn: 'কুমিল্লা বোর্ড', year: '2023' },
       { id: 'dhaka', name: 'Dhaka', nameBn: 'ঢাকা বোর্ড', year: '2023' },
+      { id: 'udvash', name: 'Udvash Weekly', nameBn: 'উদ্ভাস উইকলি', year: '' },
       { id: 'rajshahi', name: 'Rajshahi', nameBn: 'রাজশাহী বোর্ড', year: '2023', disabled: true },
       { id: 'chittagong', name: 'Chittagong', nameBn: 'চট্টগ্রাম বোর্ড', year: '2023', disabled: true },
       { id: 'barisal', name: 'Barisal', nameBn: 'বরিশাল বোর্ড', year: '2023', disabled: true },
@@ -628,7 +638,7 @@ export default function MCQTest() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                {getBoardDisplayName(selectedBoard)} ২০২৩
+                {getBoardDisplayNameWithYear(selectedBoard)}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">জীববিজ্ঞান ২য় পত্র (MCQ)</p>
             </div>

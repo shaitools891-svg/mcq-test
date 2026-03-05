@@ -9,6 +9,7 @@ import { dhaka2023Bio2nd } from './dhaka-2023-bio-2nd';
 export * from './types';
 export { comilla2023Bio2nd } from './comilla-2023-bio-2nd';
 export { dhaka2023Bio2nd } from './dhaka-2023-bio-2nd';
+export { udvashWeeklyBio2nd } from './udvash-weekly-bio-2nd';
 
 /**
  * Available question sets
