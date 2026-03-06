@@ -17,7 +17,7 @@ import { InlineMath } from 'react-katex';
 import { useTimer } from '../hooks/useTimer';
 import { toast } from 'sonner';
 import { saveMCQResult, hashProfileId } from '../utils/supabaseClient';
-import { comilla2023Bio2nd, dhaka2023Bio2nd, udvashWeeklyBio2nd } from '../data';
+import { comilla2023Bio2nd, dhaka2023Bio2nd, udvashWeeklyBio2nd, dhakaAdmissionBio2nd } from '../data';
 
 // Get current profile info
 const getProfileInfo = (): { name: string } | null => {
@@ -52,6 +52,7 @@ const getBoardDisplayNameWithYear = (boardId: string | null): string => {
     comilla: 'কুমিল্লা বোর্ড',
     dhaka: 'ঢাকা বোর্ড',
     udvash: 'উদ্ভাস উইকলি',
+    'dhaka-admission': 'ঢাকা বোর্ড ও ভর্তি স্ট্যান্ডার্ড',
     rajshahi: 'রাজশাহী বোর্ড',
     chittagong: 'চট্টগ্রাম বোর্ড',
     barisal: 'বরিশাল বোর্ড',
@@ -60,8 +61,8 @@ const getBoardDisplayNameWithYear = (boardId: string | null): string => {
     mymensingh: 'ময়মনসিংহ বোর্ড'
   };
   const name = boardNames[boardId] || '';
-  // Don't show year for UDVASH
-  if (boardId === 'udvash') {
+  // Don't show year for UDVASH and Dhaka Admission
+  if (boardId === 'udvash' || boardId === 'dhaka-admission') {
     return name;
   }
   return name ? `${name} ২০২৩` : '';
@@ -78,6 +79,9 @@ const getQuestionsForSelection = (board: string, paper: string, subject: string)
     }
     if (board === 'udvash') {
       return udvashWeeklyBio2nd as Question[];
+    }
+    if (board === 'dhaka-admission') {
+      return dhakaAdmissionBio2nd as Question[];
     }
   }
   // Default to Comilla board
@@ -445,6 +449,7 @@ export default function MCQTest() {
     const boards = [
       { id: 'comilla', name: 'Comilla', nameBn: 'কুমিল্লা বোর্ড', year: '2023' },
       { id: 'dhaka', name: 'Dhaka', nameBn: 'ঢাকা বোর্ড', year: '2023' },
+      { id: 'dhaka-admission', name: 'Dhaka Board & Admission', nameBn: 'ঢাকা বোর্ড ও ভর্তি স্ট্যান্ডার্ড', year: '' },
       { id: 'udvash', name: 'Udvash Weekly', nameBn: 'উদ্ভাস উইকলি', year: '' },
       { id: 'rajshahi', name: 'Rajshahi', nameBn: 'রাজশাহী বোর্ড', year: '2023', disabled: true },
       { id: 'chittagong', name: 'Chittagong', nameBn: 'চট্টগ্রাম বোর্ড', year: '2023', disabled: true },
