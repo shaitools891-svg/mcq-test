@@ -17,7 +17,7 @@ import { InlineMath } from 'react-katex';
 import { useTimer } from '../hooks/useTimer';
 import { toast } from 'sonner';
 import { saveMCQResult, hashProfileId } from '../utils/supabaseClient';
-import { comilla2023Bio2nd, dhaka2023Bio2nd, udvashWeeklyBio2nd, dhakaAdmissionBio2nd } from '../data';
+import { comilla2023Bio2nd, dhaka2023Bio2nd, udvashWeeklyBio2nd, boardStandardBio2nd } from '../data';
 
 // Get current profile info
 const getProfileInfo = (): { name: string } | null => {
@@ -47,12 +47,13 @@ interface Question {
 
 // Helper function to get board display name with year
 const getBoardDisplayNameWithYear = (boardId: string | null): string => {
+  console.log('getBoardDisplayNameWithYear called with:', boardId);
   if (!boardId) return '';
   const boardNames: Record<string, string> = {
     comilla: 'কুমিল্লা বোর্ড',
     dhaka: 'ঢাকা বোর্ড',
     udvash: 'উদ্ভাস উইকলি',
-    'dhaka-admission': 'ঢাকা বোর্ড ও ভর্তি স্ট্যান্ডার্ড',
+    'board-standard': 'বোর্ড স্ট্যান্ডার্ড',
     rajshahi: 'রাজশাহী বোর্ড',
     chittagong: 'চট্টগ্রাম বোর্ড',
     barisal: 'বরিশাল বোর্ড',
@@ -61,30 +62,40 @@ const getBoardDisplayNameWithYear = (boardId: string | null): string => {
     mymensingh: 'ময়মনসিংহ বোর্ড'
   };
   const name = boardNames[boardId] || '';
-  // Don't show year for UDVASH and Dhaka Admission
-  if (boardId === 'udvash' || boardId === 'dhaka-admission') {
+  console.log('Board name found:', name);
+  // Don't show year for UDVASH and Board Standard
+  if (boardId === 'udvash' || boardId === 'board-standard') {
     return name;
   }
-  return name ? `${name} ২০২৩` : '';
+  const result = name ? `${name} ২০২৩` : '';
+  console.log('Final board display name:', result);
+  return result;
 };
 
 // Map board selections to question data
 const getQuestionsForSelection = (board: string, paper: string, subject: string): Question[] => {
+  console.log('getQuestionsForSelection called with:', { board, paper, subject });
   if (subject === 'biology' && paper === '2nd') {
     if (board === 'comilla') {
+      console.log('Returning COMILLA questions');
       return comilla2023Bio2nd as Question[];
     }
     if (board === 'dhaka') {
+      console.log('Returning DHAKA questions');
       return dhaka2023Bio2nd as Question[];
     }
     if (board === 'udvash') {
+      console.log('Returning UDVASH questions');
       return udvashWeeklyBio2nd as Question[];
     }
-    if (board === 'dhaka-admission') {
-      return dhakaAdmissionBio2nd as Question[];
+    if (board === 'board-standard') {
+      console.log('Returning BOARD STANDARD questions');
+      return boardStandardBio2nd as Question[];
     }
   }
+  console.log('Condition matched: biology + 2nd paper');
   // Default to Comilla board
+  console.log('Returning DEFAULT (Comilla) questions');
   return comilla2023Bio2nd as Question[];
 };
 
@@ -449,7 +460,7 @@ export default function MCQTest() {
     const boards = [
       { id: 'comilla', name: 'Comilla', nameBn: 'কুমিল্লা বোর্ড', year: '2023' },
       { id: 'dhaka', name: 'Dhaka', nameBn: 'ঢাকা বোর্ড', year: '2023' },
-      { id: 'dhaka-admission', name: 'Dhaka Board & Admission', nameBn: 'ঢাকা বোর্ড ও ভর্তি স্ট্যান্ডার্ড', year: '' },
+      { id: 'board-standard', name: 'Board Standard', nameBn: 'বোর্ড স্ট্যান্ডার্ড', year: '' },
       { id: 'udvash', name: 'Udvash Weekly', nameBn: 'উদ্ভাস উইকলি', year: '' },
       { id: 'rajshahi', name: 'Rajshahi', nameBn: 'রাজশাহী বোর্ড', year: '2023', disabled: true },
       { id: 'chittagong', name: 'Chittagong', nameBn: 'চট্টগ্রাম বোর্ড', year: '2023', disabled: true },
@@ -562,7 +573,10 @@ export default function MCQTest() {
                 {boards.map((board) => (
                   <button
                     key={board.id}
-                    onClick={() => !board.disabled && setSelectedBoard(board.id)}
+                    onClick={() => {
+                      console.log('Board clicked:', board.id);
+                      !board.disabled && setSelectedBoard(board.id);
+                    }}
                     disabled={!selectedPaper || board.disabled}
                     className={`p-4 rounded-xl border-2 transition-all text-center ${
                       !selectedPaper || board.disabled
@@ -583,7 +597,9 @@ export default function MCQTest() {
             {/* Start Button */}
             <button
               onClick={() => {
+                console.log('Starting test with:', { board: selectedBoard, paper: selectedPaper, subject: selectedSubject });
                 const loadedQuestions = getQuestionsForSelection(selectedBoard!, selectedPaper!, selectedSubject!);
+                console.log('Loaded questions:', loadedQuestions.length, 'first q:', loadedQuestions[0]?.question.substring(0, 30));
                 setQuestions(loadedQuestions);
                 setTestStarted(true);
               }}
